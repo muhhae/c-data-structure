@@ -1,7 +1,7 @@
-#include <stdio.h>
-#ifndef LINKED_LIST_H
+#ifndef MUHHAE_LINKED_LIST_H
 
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -42,6 +42,8 @@
     node->r = ll->head;                                                        \
     if (node->r)                                                               \
       node->r->l = node;                                                       \
+    if (ll->tail == NULL)                                                      \
+      ll->tail = node;                                                         \
     ll->head = node;                                                           \
     ll->count++;                                                               \
   }
@@ -58,6 +60,8 @@
     if (node->l)                                                               \
       node->l->r = node;                                                       \
     node->r = NULL;                                                            \
+    if (ll->head == NULL)                                                      \
+      ll->head = node;                                                         \
     ll->tail = node;                                                           \
     ll->count++;                                                               \
   }
@@ -69,8 +73,4 @@
   LPUSH(TYPE)                                                                  \
   RPUSH(TYPE)
 
-LinkedList(int);
-LinkedList(float);
-LinkedList(uint64_t);
-
-#endif // LINKED_LIST_H
+#endif // MUHHAE_LINKED_LIST_H
