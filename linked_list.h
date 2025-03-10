@@ -30,7 +30,7 @@
     return LL;                                                                 \
   }
 
-#define LPUSH(TYPE)                                                            \
+#define LL_LPUSH(TYPE)                                                         \
   static inline void ListLPush_##TYPE(LIST_TYPE(TYPE) * ll, TYPE e) {          \
     NODE_TYPE(TYPE) *node =                                                    \
         (NODE_TYPE(TYPE) *)malloc(sizeof(NODE_TYPE(TYPE)));                    \
@@ -48,7 +48,7 @@
     ll->count++;                                                               \
   }
 
-#define RPUSH(TYPE)                                                            \
+#define LL_RPUSH(TYPE)                                                         \
   static inline void ListRPush_##TYPE(LIST_TYPE(TYPE) * ll, TYPE e) {          \
     NODE_TYPE(TYPE) *node =                                                    \
         (NODE_TYPE(TYPE) *)malloc(sizeof(NODE_TYPE(TYPE)));                    \
@@ -66,11 +66,24 @@
     ll->count++;                                                               \
   }
 
+#define LL_AT(TYPE)                                                            \
+  static inline NODE_TYPE(TYPE) *                                              \
+      ListAt_##TYPE(LIST_TYPE(TYPE) * ll, size_t index) {                      \
+    size_t i = 0;                                                              \
+    NODE_TYPE(TYPE) *current_node = ll->head;                                  \
+    while (i < index && current_node) {                                        \
+      current_node = current_node->r;                                          \
+      i++;                                                                     \
+    }                                                                          \
+    return current_node;                                                       \
+  }
+
 #define LinkedList(TYPE)                                                       \
   NODE(TYPE)                                                                   \
   LIST(TYPE)                                                                   \
   CREATE_LIST(TYPE)                                                            \
-  LPUSH(TYPE)                                                                  \
-  RPUSH(TYPE)
+  LL_LPUSH(TYPE)                                                               \
+  LL_RPUSH(TYPE)                                                               \
+  LL_AT(TYPE)
 
 #endif // MUHHAE_LINKED_LIST_H

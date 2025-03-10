@@ -19,6 +19,10 @@ int main() {
     printf("%d\n", current->obj);
     current = current->l;
   }
+  printf("\n");
+  for (int i = 0; i < ll.count; i++) {
+    printf("%d : %d\n", i, ListAt_int(&ll, i)->obj);
+  }
 
   return 0;
 }
