@@ -6,7 +6,7 @@ LinkedList(int);
 int main() {
   list_int_t ll = CreateList_int();
   for (int i = 0; i < 10; i++) {
-    ListLPush_int(&ll, i);
+    ll.LPush(&ll, i);
   }
   node_int_t *current = ll.head;
   while (current) {
@@ -21,7 +21,7 @@ int main() {
   }
   printf("\n");
   for (int i = 0; i < ll.count; i++) {
-    printf("%d : %d\n", i, ListAt_int(&ll, i)->obj);
+    printf("%d : %d\n", i, ll.At(&ll, i)->obj);
   }
 
   return 0;

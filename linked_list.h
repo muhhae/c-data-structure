@@ -8,27 +8,31 @@
 #define NODE_TYPE(TYPE) node_##TYPE##_t
 #define LIST_TYPE(TYPE) list_##TYPE##_t
 
+#define LL_FUNCTION(TYPE)                                                      \
+  struct NODE_TYPE(TYPE);                                                      \
+  struct LIST_TYPE(TYPE);                                                      \
+  typedef struct NODE_TYPE(TYPE) NODE_TYPE(TYPE);                              \
+  typedef struct LIST_TYPE(TYPE) LIST_TYPE(TYPE);                              \
+  typedef void (*ll_lpush_func_##TYPE)(LIST_TYPE(TYPE) *, TYPE);               \
+  typedef void (*ll_rpush_func_##TYPE)(LIST_TYPE(TYPE) *, TYPE);               \
+  typedef NODE_TYPE(TYPE) * (*ll_at_func_##TYPE)(LIST_TYPE(TYPE) *, size_t);
+
 #define NODE(TYPE)                                                             \
-  typedef struct NODE_TYPE(TYPE) {                                             \
+  struct NODE_TYPE(TYPE) {                                                     \
     TYPE obj;                                                                  \
     struct NODE_TYPE(TYPE) * l;                                                \
     struct NODE_TYPE(TYPE) * r;                                                \
-  } NODE_TYPE(TYPE);
+  };
 
 #define LIST(TYPE)                                                             \
-  typedef struct LIST_TYPE(TYPE) {                                             \
+  struct LIST_TYPE(TYPE) {                                                     \
     NODE_TYPE(TYPE) * head;                                                    \
     NODE_TYPE(TYPE) * tail;                                                    \
     size_t count;                                                              \
-  } LIST_TYPE(TYPE);
-
-#define CREATE_LIST(TYPE)                                                      \
-  static inline LIST_TYPE(TYPE) CreateList_##TYPE() {                          \
-    LIST_TYPE(TYPE) LL;                                                        \
-    LL.head = NULL;                                                            \
-    LL.tail = NULL;                                                            \
-    return LL;                                                                 \
-  }
+    ll_lpush_func LPush;                                                       \
+    ll_rpush_func RPush;                                                       \
+    ll_at_func At;                                                             \
+  };
 
 #define LL_LPUSH(TYPE)                                                         \
   static inline void ListLPush_##TYPE(LIST_TYPE(TYPE) * ll, TYPE e) {          \
@@ -78,12 +82,24 @@
     return current_node;                                                       \
   }
 
+#define CREATE_LIST(TYPE)                                                      \
+  static inline LIST_TYPE(TYPE) CreateList_##TYPE() {                          \
+    LIST_TYPE(TYPE) LL;                                                        \
+    LL.head = NULL;                                                            \
+    LL.tail = NULL;                                                            \
+    LL.LPush = ListLPush_##TYPE;                                               \
+    LL.RPush = ListRPush_##TYPE;                                               \
+    LL.At = ListAt_##TYPE;                                                     \
+    return LL;                                                                 \
+  }
+
 #define LinkedList(TYPE)                                                       \
+  LL_FUNCTION(TYPE)                                                            \
   NODE(TYPE)                                                                   \
   LIST(TYPE)                                                                   \
-  CREATE_LIST(TYPE)                                                            \
   LL_LPUSH(TYPE)                                                               \
   LL_RPUSH(TYPE)                                                               \
-  LL_AT(TYPE)
+  LL_AT(TYPE)                                                                  \
+  CREATE_LIST(TYPE)
 
 #endif // MUHHAE_LINKED_LIST_H
