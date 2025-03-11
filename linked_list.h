@@ -29,9 +29,9 @@
     NODE_TYPE(TYPE) * head;                                                    \
     NODE_TYPE(TYPE) * tail;                                                    \
     size_t count;                                                              \
-    ll_lpush_func LPush;                                                       \
-    ll_rpush_func RPush;                                                       \
-    ll_at_func At;                                                             \
+    ll_lpush_func_##TYPE LPush;                                                \
+    ll_rpush_func_##TYPE RPush;                                                \
+    ll_at_func_##TYPE At;                                                      \
   };
 
 #define LL_LPUSH(TYPE)                                                         \
@@ -74,17 +74,31 @@
   static inline NODE_TYPE(TYPE) *                                              \
       ListAt_##TYPE(LIST_TYPE(TYPE) * ll, size_t index) {                      \
     size_t i = 0;                                                              \
-    NODE_TYPE(TYPE) *current_node = ll->head;                                  \
-    while (i < index && current_node) {                                        \
-      current_node = current_node->r;                                          \
-      i++;                                                                     \
+    NODE_TYPE(TYPE) * current_node;                                            \
+    if (index < ll->count / 2) {                                               \
+      current_node = ll->head;                                                 \
+      while (i < index && current_node) {                                      \
+        current_node = current_node->r;                                        \
+        i++;                                                                   \
+      }                                                                        \
+      return current_node;                                                     \
+    }                                                                          \
+    i = ll->count - 1;                                                         \
+    current_node = ll->tail;                                                   \
+    while (i > index && current_node) {                                        \
+      current_node = current_node->l;                                          \
+      i--;                                                                     \
     }                                                                          \
     return current_node;                                                       \
   }
 
+#define LL_RPOP(TYPE)
+#define LL_LPOP(TYPE)
+
 #define CREATE_LIST(TYPE)                                                      \
   static inline LIST_TYPE(TYPE) CreateList_##TYPE() {                          \
     LIST_TYPE(TYPE) LL;                                                        \
+    LL.count = 0;                                                              \
     LL.head = NULL;                                                            \
     LL.tail = NULL;                                                            \
     LL.LPush = ListLPush_##TYPE;                                               \
