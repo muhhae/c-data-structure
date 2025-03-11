@@ -20,6 +20,14 @@ int main() {
     lv.LPush(&lv, (vector2){i, (float)i / 10});
   }
 
+  *ll.At(&ll, 4) = 12;
+  *lf.At(&lf, 3) = 12;
+  *lv.At(&lv, 2) = (vector2){12, 0.12};
+
+  // SEGFAULT Nil Dereference Error
+  // *ll.At(&ll, 99) = 66;
+  // printf("99: %d )", *ll.At(&ll, 99));
+
   printf("Int\n\n");
   node_int_t *current = ll.head;
   while (current) {
@@ -34,7 +42,7 @@ int main() {
   }
   printf("\n");
   for (int i = 0; i < ll.count; i++) {
-    printf("%d : %d\n", i, ll.At(&ll, i)->obj);
+    printf("%d : %d\n", i, *ll.At(&ll, i));
   }
 
   printf("\nFloat\n\n");
@@ -51,7 +59,7 @@ int main() {
   }
   printf("\n");
   for (int i = 0; i < lf.count; i++) {
-    printf("%d : %f\n", i, lf.At(&lf, i)->obj);
+    printf("%d : %f\n", i, *lf.At(&lf, i));
   }
 
   printf("\nVector2\n\n");
@@ -68,7 +76,20 @@ int main() {
   }
   printf("\n");
   for (int i = 0; i < lv.count; i++) {
-    printf("%d : %f %f\n", i, lv.At(&lv, i)->obj.x, lv.At(&lv, i)->obj.y);
+    printf("%d : %f %f\n", i, lv.At(&lv, i)->x, lv.At(&lv, i)->y);
+  }
+  printf("\n");
+  ListRPop_vector2(&lv);
+  for (int i = 0; i < lv.count; i++) {
+    printf("%d : %f %f\n", i, lv.At(&lv, i)->x, lv.At(&lv, i)->y);
+  }
+  printf("\n");
+  vector2 tmp = lv.RPop(&lv);
+  printf("%f %f\n", tmp.x, tmp.y);
+  tmp = lv.LPop(&lv);
+  printf("%f %f\n", tmp.x, tmp.y);
+  for (int i = 0; i < lv.count; i++) {
+    printf("%d : %f %f\n", i, lv.At(&lv, i)->x, lv.At(&lv, i)->y);
   }
 
   return 0;

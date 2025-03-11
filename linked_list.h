@@ -15,7 +15,9 @@
   typedef struct LIST_TYPE(TYPE) LIST_TYPE(TYPE);                              \
   typedef void (*ll_lpush_func_##TYPE)(LIST_TYPE(TYPE) *, TYPE);               \
   typedef void (*ll_rpush_func_##TYPE)(LIST_TYPE(TYPE) *, TYPE);               \
-  typedef NODE_TYPE(TYPE) * (*ll_at_func_##TYPE)(LIST_TYPE(TYPE) *, size_t);
+  typedef TYPE *(*ll_at_func_##TYPE)(LIST_TYPE(TYPE) *, size_t);               \
+  typedef TYPE (*ll_rpop_func_##TYPE)(LIST_TYPE(TYPE) *);                      \
+  typedef TYPE (*ll_lpop_func_##TYPE)(LIST_TYPE(TYPE) *);
 
 #define NODE(TYPE)                                                             \
   struct NODE_TYPE(TYPE) {                                                     \
@@ -32,6 +34,8 @@
     ll_lpush_func_##TYPE LPush;                                                \
     ll_rpush_func_##TYPE RPush;                                                \
     ll_at_func_##TYPE At;                                                      \
+    ll_lpop_func_##TYPE LPop;                                                  \
+    ll_rpop_func_##TYPE RPop;                                                  \
   };
 
 #define LL_LPUSH(TYPE)                                                         \
@@ -71,8 +75,9 @@
   }
 
 #define LL_AT(TYPE)                                                            \
-  static inline NODE_TYPE(TYPE) *                                              \
-      ListAt_##TYPE(LIST_TYPE(TYPE) * ll, size_t index) {                      \
+  static inline TYPE *ListAt_##TYPE(LIST_TYPE(TYPE) * ll, size_t index) {      \
+    if (index > ll->count - 1)                                                 \
+      return NULL;                                                             \
     size_t i = 0;                                                              \
     NODE_TYPE(TYPE) * current_node;                                            \
     if (index < ll->count / 2) {                                               \
@@ -81,7 +86,7 @@
         current_node = current_node->r;                                        \
         i++;                                                                   \
       }                                                                        \
-      return current_node;                                                     \
+      return &current_node->obj;                                               \
     }                                                                          \
     i = ll->count - 1;                                                         \
     current_node = ll->tail;                                                   \
@@ -89,11 +94,30 @@
       current_node = current_node->l;                                          \
       i--;                                                                     \
     }                                                                          \
-    return current_node;                                                       \
+    return &current_node->obj;                                                 \
   }
 
-#define LL_RPOP(TYPE)
-#define LL_LPOP(TYPE)
+#define LL_RPOP(TYPE)                                                          \
+  static inline TYPE ListRPop_##TYPE(LIST_TYPE(TYPE) * ll) {                   \
+    TYPE copy_tmp = ll->tail->obj;                                             \
+    NODE_TYPE(TYPE) *new_tail = ll->tail->l;                                   \
+    free(ll->tail);                                                            \
+    ll->tail = new_tail;                                                       \
+    ll->tail->r = NULL;                                                        \
+    ll->count--;                                                               \
+    return copy_tmp;                                                           \
+  }
+
+#define LL_LPOP(TYPE)                                                          \
+  static inline TYPE ListLPop_##TYPE(LIST_TYPE(TYPE) * ll) {                   \
+    TYPE copy_tmp = ll->head->obj;                                             \
+    NODE_TYPE(TYPE) *new_head = ll->head->r;                                   \
+    free(ll->head);                                                            \
+    ll->head = new_head;                                                       \
+    ll->head->l = NULL;                                                        \
+    ll->count--;                                                               \
+    return copy_tmp;                                                           \
+  }
 
 #define CREATE_LIST(TYPE)                                                      \
   static inline LIST_TYPE(TYPE) CreateList_##TYPE() {                          \
@@ -104,6 +128,8 @@
     LL.LPush = ListLPush_##TYPE;                                               \
     LL.RPush = ListRPush_##TYPE;                                               \
     LL.At = ListAt_##TYPE;                                                     \
+    LL.RPop = ListRPop_##TYPE;                                                 \
+    LL.LPop = ListLPop_##TYPE;                                                 \
     return LL;                                                                 \
   }
 
@@ -113,6 +139,8 @@
   LIST(TYPE)                                                                   \
   LL_LPUSH(TYPE)                                                               \
   LL_RPUSH(TYPE)                                                               \
+  LL_RPOP(TYPE)                                                                \
+  LL_LPOP(TYPE)                                                                \
   LL_AT(TYPE)                                                                  \
   CREATE_LIST(TYPE)
 
