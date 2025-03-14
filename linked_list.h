@@ -133,7 +133,7 @@
     return LL;                                                                 \
   }
 
-#define LinkedList(TYPE)                                                       \
+#define DefineLinkedList(TYPE)                                                 \
   LL_FUNCTION(TYPE)                                                            \
   NODE(TYPE)                                                                   \
   LIST(TYPE)                                                                   \
