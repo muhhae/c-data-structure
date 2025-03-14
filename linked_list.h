@@ -21,7 +21,7 @@
 
 #define NODE(TYPE)                                                             \
   struct NODE_TYPE(TYPE) {                                                     \
-    TYPE obj;                                                                  \
+    TYPE value;                                                                \
     struct NODE_TYPE(TYPE) * l;                                                \
     struct NODE_TYPE(TYPE) * r;                                                \
   };
@@ -45,7 +45,7 @@
     if (node == NULL) {                                                        \
       printf("Error allocating memory");                                       \
     }                                                                          \
-    node->obj = e;                                                             \
+    node->value = e;                                                           \
     node->l = NULL;                                                            \
     node->r = ll->head;                                                        \
     if (node->r)                                                               \
@@ -63,7 +63,7 @@
     if (node == NULL) {                                                        \
       printf("Error allocating memory");                                       \
     }                                                                          \
-    node->obj = e;                                                             \
+    node->value = e;                                                           \
     node->l = ll->tail;                                                        \
     if (node->l)                                                               \
       node->l->r = node;                                                       \
@@ -86,7 +86,7 @@
         current_node = current_node->r;                                        \
         i++;                                                                   \
       }                                                                        \
-      return &current_node->obj;                                               \
+      return &current_node->value;                                             \
     }                                                                          \
     i = ll->count - 1;                                                         \
     current_node = ll->tail;                                                   \
@@ -94,27 +94,29 @@
       current_node = current_node->l;                                          \
       i--;                                                                     \
     }                                                                          \
-    return &current_node->obj;                                                 \
+    return &current_node->value;                                               \
   }
 
 #define LL_RPOP(TYPE)                                                          \
   static inline TYPE ListRPop_##TYPE(LIST_TYPE(TYPE) * ll) {                   \
-    TYPE copy_tmp = ll->tail->obj;                                             \
+    TYPE copy_tmp = ll->tail->value;                                           \
     NODE_TYPE(TYPE) *new_tail = ll->tail->l;                                   \
     free(ll->tail);                                                            \
     ll->tail = new_tail;                                                       \
-    ll->tail->r = NULL;                                                        \
+    if (ll->tail)                                                              \
+      ll->tail->r = NULL;                                                      \
     ll->count--;                                                               \
     return copy_tmp;                                                           \
   }
 
 #define LL_LPOP(TYPE)                                                          \
   static inline TYPE ListLPop_##TYPE(LIST_TYPE(TYPE) * ll) {                   \
-    TYPE copy_tmp = ll->head->obj;                                             \
+    TYPE copy_tmp = ll->head->value;                                           \
     NODE_TYPE(TYPE) *new_head = ll->head->r;                                   \
     free(ll->head);                                                            \
     ll->head = new_head;                                                       \
-    ll->head->l = NULL;                                                        \
+    if (ll->head)                                                              \
+      ll->head->l = NULL;                                                      \
     ll->count--;                                                               \
     return copy_tmp;                                                           \
   }
