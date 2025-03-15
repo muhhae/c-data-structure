@@ -43,7 +43,8 @@
     NODE_TYPE(TYPE) *node =                                                    \
         (NODE_TYPE(TYPE) *)malloc(sizeof(NODE_TYPE(TYPE)));                    \
     if (node == NULL) {                                                        \
-      printf("Error allocating memory");                                       \
+      fprintf(stderr, "Memory allocation failed\n");                           \
+      exit(EXIT_FAILURE);                                                      \
     }                                                                          \
     node->value = e;                                                           \
     node->l = NULL;                                                            \
@@ -61,7 +62,8 @@
     NODE_TYPE(TYPE) *node =                                                    \
         (NODE_TYPE(TYPE) *)malloc(sizeof(NODE_TYPE(TYPE)));                    \
     if (node == NULL) {                                                        \
-      printf("Error allocating memory");                                       \
+      fprintf(stderr, "Memory allocation failed\n");                           \
+      exit(EXIT_FAILURE);                                                      \
     }                                                                          \
     node->value = e;                                                           \
     node->l = ll->tail;                                                        \
