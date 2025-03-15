@@ -39,7 +39,7 @@
   };
 
 #define LL_LPUSH(TYPE)                                                         \
-  static inline void ListLPush_##TYPE(LIST_TYPE(TYPE) * ll, TYPE e) {          \
+  static void ListLPush_##TYPE(LIST_TYPE(TYPE) * ll, TYPE e) {                 \
     NODE_TYPE(TYPE) *node =                                                    \
         (NODE_TYPE(TYPE) *)malloc(sizeof(NODE_TYPE(TYPE)));                    \
     if (node == NULL) {                                                        \
@@ -57,7 +57,7 @@
   }
 
 #define LL_RPUSH(TYPE)                                                         \
-  static inline void ListRPush_##TYPE(LIST_TYPE(TYPE) * ll, TYPE e) {          \
+  static void ListRPush_##TYPE(LIST_TYPE(TYPE) * ll, TYPE e) {                 \
     NODE_TYPE(TYPE) *node =                                                    \
         (NODE_TYPE(TYPE) *)malloc(sizeof(NODE_TYPE(TYPE)));                    \
     if (node == NULL) {                                                        \
@@ -75,7 +75,7 @@
   }
 
 #define LL_AT(TYPE)                                                            \
-  static inline TYPE *ListAt_##TYPE(LIST_TYPE(TYPE) * ll, size_t index) {      \
+  static TYPE *ListAt_##TYPE(LIST_TYPE(TYPE) * ll, size_t index) {             \
     if (index > ll->count - 1)                                                 \
       return NULL;                                                             \
     size_t i = 0;                                                              \
@@ -98,31 +98,35 @@
   }
 
 #define LL_RPOP(TYPE)                                                          \
-  static inline TYPE ListRPop_##TYPE(LIST_TYPE(TYPE) * ll) {                   \
+  static TYPE ListRPop_##TYPE(LIST_TYPE(TYPE) * ll) {                          \
     TYPE copy_tmp = ll->tail->value;                                           \
     NODE_TYPE(TYPE) *new_tail = ll->tail->l;                                   \
     free(ll->tail);                                                            \
     ll->tail = new_tail;                                                       \
     if (ll->tail)                                                              \
       ll->tail->r = NULL;                                                      \
+    else                                                                       \
+      ll->head = NULL;                                                         \
     ll->count--;                                                               \
     return copy_tmp;                                                           \
   }
 
 #define LL_LPOP(TYPE)                                                          \
-  static inline TYPE ListLPop_##TYPE(LIST_TYPE(TYPE) * ll) {                   \
+  static TYPE ListLPop_##TYPE(LIST_TYPE(TYPE) * ll) {                          \
     TYPE copy_tmp = ll->head->value;                                           \
     NODE_TYPE(TYPE) *new_head = ll->head->r;                                   \
     free(ll->head);                                                            \
     ll->head = new_head;                                                       \
     if (ll->head)                                                              \
       ll->head->l = NULL;                                                      \
+    else                                                                       \
+      ll->tail = NULL;                                                         \
     ll->count--;                                                               \
     return copy_tmp;                                                           \
   }
 
 #define CREATE_LIST(TYPE)                                                      \
-  static inline LIST_TYPE(TYPE) CreateList_##TYPE() {                          \
+  static LIST_TYPE(TYPE) CreateList_##TYPE() {                                 \
     LIST_TYPE(TYPE) LL;                                                        \
     LL.count = 0;                                                              \
     LL.head = NULL;                                                            \

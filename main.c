@@ -33,6 +33,7 @@ int main() {
   // SEGFAULT Nil Dereference Error
   // *lv.At(&ll, 99) = (vector2){9, 0.9};
   // printf("99: %d )", *lv.At(&lv, 99));
+  //
 
   printf("\n");
   for (node_vector2_t *c = lv.head; c != NULL; c = c->r) {
@@ -45,8 +46,9 @@ int main() {
   printf("\n");
   while (lv.count > 0) {
     vector2 popped = lv.LPop(&lv);
-    printf("Popped (%.2f,%.2f)\nlv_count: %zu \ncurrent : [", popped.x,
-           popped.y, lv.count);
+    printf("Popped (%.2f,%.2f)\nlv_count: %zu \nlv_head: %p\nlv_tail: "
+           "%p\ncurrent : [",
+           popped.x, popped.y, lv.count, lv.head, lv.tail);
     for (node_vector2_t *c = lv.head; c != NULL; c = c->r) {
       printf("(%.2f,%.2f)", c->value.x, c->value.y);
       if (c->r)
@@ -54,7 +56,9 @@ int main() {
     }
     printf("]\n\n");
   }
-  printf("last lv_count: %zu", lv.count);
+  printf("last lv_count: %zu\n", lv.count);
+  printf("head: %p\n", lv.head);
+  printf("tail: %p\n", lv.tail);
 
   return 0;
 }
