@@ -1,4 +1,7 @@
 #ifndef MUHHAE_LINKED_LIST_H
+#define MUHHAE_LINKED_LIST_H
+
+#include "util.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -15,6 +18,7 @@
   typedef struct LIST_TYPE(TYPE) LIST_TYPE(TYPE);                              \
   typedef void (*ll_lpush_func_##TYPE)(LIST_TYPE(TYPE) *, TYPE);               \
   typedef void (*ll_rpush_func_##TYPE)(LIST_TYPE(TYPE) *, TYPE);               \
+  typedef void (*ll_destroy_func_##TYPE)(LIST_TYPE(TYPE) *);                   \
   typedef TYPE *(*ll_at_func_##TYPE)(LIST_TYPE(TYPE) *, size_t);               \
   typedef TYPE (*ll_rpop_func_##TYPE)(LIST_TYPE(TYPE) *);                      \
   typedef TYPE (*ll_lpop_func_##TYPE)(LIST_TYPE(TYPE) *);
@@ -36,6 +40,8 @@
     ll_at_func_##TYPE At;                                                      \
     ll_lpop_func_##TYPE LPop;                                                  \
     ll_rpop_func_##TYPE RPop;                                                  \
+    ll_destroy_func_##TYPE Destroy;                                            \
+    free_func _customFree;                                                     \
   };
 
 #define LL_LPUSH(TYPE)                                                         \
@@ -101,6 +107,8 @@
 
 #define LL_RPOP(TYPE)                                                          \
   static TYPE ListRPop_##TYPE(LIST_TYPE(TYPE) * ll) {                          \
+    if (!ll->tail)                                                             \
+      return (TYPE){0};                                                        \
     TYPE copy_tmp = ll->tail->value;                                           \
     NODE_TYPE(TYPE) *new_tail = ll->tail->l;                                   \
     free(ll->tail);                                                            \
@@ -115,6 +123,8 @@
 
 #define LL_LPOP(TYPE)                                                          \
   static TYPE ListLPop_##TYPE(LIST_TYPE(TYPE) * ll) {                          \
+    if (!ll->head)                                                             \
+      return (TYPE){0};                                                        \
     TYPE copy_tmp = ll->head->value;                                           \
     NODE_TYPE(TYPE) *new_head = ll->head->r;                                   \
     free(ll->head);                                                            \
@@ -127,7 +137,30 @@
     return copy_tmp;                                                           \
   }
 
-#define CREATE_LIST(TYPE)                                                      \
+#define LL_INSERT(TYPE)                                                        \
+  static void ListInsertAt_##TYPE(LIST_TYPE(TYPE) * ll, size_t index) {        \
+    size_t i = 0;                                                              \
+    NODE_TYPE(TYPE) * current_node;                                            \
+    if (index < ll->count / 2) {                                               \
+      current_node = ll->head;                                                 \
+      while (i < index && current_node) {                                      \
+        current_node = current_node->r;                                        \
+        i++;                                                                   \
+      }                                                                        \
+    } else {                                                                   \
+      i = ll->count - 1;                                                       \
+      current_node = ll->tail;                                                 \
+      while (i > index && current_node) {                                      \
+        current_node = current_node->l;                                        \
+        i--;                                                                   \
+      }                                                                        \
+    }                                                                          \
+  }
+
+#define LL_REMOVE(TYPE)                                                        \
+  static void ListRemoveAt_##TYPE(LIST_TYPE(TYPE) * ll, size_t index) {}
+
+#define CREATE_LIST(TYPE, CUSTOM_FREE_FUNC)                                    \
   static LIST_TYPE(TYPE) CreateList_##TYPE() {                                 \
     LIST_TYPE(TYPE) LL;                                                        \
     LL.count = 0;                                                              \
@@ -138,10 +171,23 @@
     LL.At = ListAt_##TYPE;                                                     \
     LL.RPop = ListRPop_##TYPE;                                                 \
     LL.LPop = ListLPop_##TYPE;                                                 \
+    LL.Destroy = ListDestroy_##TYPE;                                           \
+    LL._customFree = CUSTOM_FREE_FUNC;                                         \
     return LL;                                                                 \
   }
 
-#define DefineLinkedList(TYPE)                                                 \
+#define LL_DESTROY(TYPE)                                                       \
+  /*Destroy the list entirely, clean up the memory with _customFree if not     \
+   * null */                                                                   \
+  static inline void ListDestroy_##TYPE(LIST_TYPE(TYPE) * ll) {                \
+    while (ll->head) {                                                         \
+      TYPE e = ll->LPop(ll);                                                   \
+      if (ll->_customFree)                                                     \
+        myFree(&e, ll->_customFree);                                           \
+    }                                                                          \
+  }
+
+#define DefineLinkedList(TYPE, CUSTOM_FREE_FUNC)                               \
   LL_FUNCTION(TYPE)                                                            \
   NODE(TYPE)                                                                   \
   LIST(TYPE)                                                                   \
@@ -150,6 +196,7 @@
   LL_RPOP(TYPE)                                                                \
   LL_LPOP(TYPE)                                                                \
   LL_AT(TYPE)                                                                  \
-  CREATE_LIST(TYPE)
+  LL_DESTROY(TYPE)                                                             \
+  CREATE_LIST(TYPE, CUSTOM_FREE_FUNC)
 
 #endif // MUHHAE_LINKED_LIST_H
