@@ -25,4 +25,8 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git diff --quiet || (git add . && git commit -m "Apply clang-format" && git push)
+          if ! git diff --quiet; then
+            git add .
+            git commit --amend --no-edit
+            git push --force
+          fi
