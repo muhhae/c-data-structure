@@ -16,7 +16,7 @@ typedef struct {
 DefineLinkedList(vector2, NULL);
 
 int main() {
-          list_vector2_t lv = CreateList_vector2();
+  list_vector2_t lv = CreateList_vector2();
   for (int i = -5; i < 6; i++) {
     lv.LPush(&lv, (vector2){i, (float)i / 10});
     printf("Pushed (%.2f,%.2f) \ncurrent : [", lv.head->value.x,
