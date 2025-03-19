@@ -11,13 +11,13 @@
 #define NODE_TYPE(TYPE) node_##TYPE##_t
 #define LIST_TYPE(TYPE) list_##TYPE##_t
 
-#define LL_FUNCTION(TYPE)                                                      \
+#define LL_PROTOTYPE(TYPE)                                                     \
   struct NODE_TYPE(TYPE);                                                      \
   struct LIST_TYPE(TYPE);                                                      \
   typedef struct NODE_TYPE(TYPE) NODE_TYPE(TYPE);                              \
   typedef struct LIST_TYPE(TYPE) LIST_TYPE(TYPE);                              \
-  typedef void (*ll_lpush_func_##TYPE)(LIST_TYPE(TYPE) *, TYPE);               \
-  typedef void (*ll_rpush_func_##TYPE)(LIST_TYPE(TYPE) *, TYPE);               \
+  typedef TYPE *(*ll_lpush_func_##TYPE)(LIST_TYPE(TYPE) *, TYPE);              \
+  typedef TYPE *(*ll_rpush_func_##TYPE)(LIST_TYPE(TYPE) *, TYPE);              \
   typedef void (*ll_destroy_func_##TYPE)(LIST_TYPE(TYPE) *);                   \
   typedef TYPE *(*ll_at_func_##TYPE)(LIST_TYPE(TYPE) *, size_t);               \
   typedef TYPE (*ll_rpop_func_##TYPE)(LIST_TYPE(TYPE) *);                      \
@@ -45,7 +45,7 @@
   };
 
 #define LL_LPUSH(TYPE)                                                         \
-  static void ListLPush_##TYPE(LIST_TYPE(TYPE) * ll, TYPE e) {                 \
+  static TYPE *ListLPush_##TYPE(LIST_TYPE(TYPE) * ll, TYPE e) {                \
     NODE_TYPE(TYPE) *node =                                                    \
         (NODE_TYPE(TYPE) *)malloc(sizeof(NODE_TYPE(TYPE)));                    \
     if (node == NULL) {                                                        \
@@ -61,10 +61,11 @@
       ll->tail = node;                                                         \
     ll->head = node;                                                           \
     ll->count++;                                                               \
+    return &ll->head->value;                                                   \
   }
 
 #define LL_RPUSH(TYPE)                                                         \
-  static void ListRPush_##TYPE(LIST_TYPE(TYPE) * ll, TYPE e) {                 \
+  static TYPE *ListRPush_##TYPE(LIST_TYPE(TYPE) * ll, TYPE e) {                \
     NODE_TYPE(TYPE) *node =                                                    \
         (NODE_TYPE(TYPE) *)malloc(sizeof(NODE_TYPE(TYPE)));                    \
     if (node == NULL) {                                                        \
@@ -80,10 +81,12 @@
       ll->head = node;                                                         \
     ll->tail = node;                                                           \
     ll->count++;                                                               \
+    return &ll->tail->value;                                                   \
   }
 
-#define LL_AT(TYPE)                                                            \
-  static TYPE *ListAt_##TYPE(LIST_TYPE(TYPE) * ll, size_t index) {             \
+#define LL_NODE_AT(TYPE)                                                       \
+  static NODE_TYPE(TYPE) *                                                     \
+      ListNodeAt_##TYPE(LIST_TYPE(TYPE) * ll, size_t index) {                  \
     if (index > ll->count - 1)                                                 \
       return NULL;                                                             \
     size_t i = 0;                                                              \
@@ -94,7 +97,7 @@
         current_node = current_node->r;                                        \
         i++;                                                                   \
       }                                                                        \
-      return &current_node->value;                                             \
+      return current_node;                                                     \
     }                                                                          \
     i = ll->count - 1;                                                         \
     current_node = ll->tail;                                                   \
@@ -102,7 +105,13 @@
       current_node = current_node->l;                                          \
       i--;                                                                     \
     }                                                                          \
-    return &current_node->value;                                               \
+    return current_node;                                                       \
+  }
+
+#define LL_AT(TYPE)                                                            \
+  static inline TYPE *ListAt_##TYPE(LIST_TYPE(TYPE) * ll, size_t index) {      \
+    NODE_TYPE(TYPE) *node = ListNodeAt_##TYPE(ll, index);                      \
+    return node ? &node->value : NULL;                                         \
   }
 
 #define LL_RPOP(TYPE)                                                          \
@@ -138,27 +147,42 @@
   }
 
 #define LL_INSERT(TYPE)                                                        \
-  static void ListInsertAt_##TYPE(LIST_TYPE(TYPE) * ll, size_t index) {        \
-    size_t i = 0;                                                              \
-    NODE_TYPE(TYPE) * current_node;                                            \
-    if (index < ll->count / 2) {                                               \
-      current_node = ll->head;                                                 \
-      while (i < index && current_node) {                                      \
-        current_node = current_node->r;                                        \
-        i++;                                                                   \
-      }                                                                        \
-    } else {                                                                   \
-      i = ll->count - 1;                                                       \
-      current_node = ll->tail;                                                 \
-      while (i > index && current_node) {                                      \
-        current_node = current_node->l;                                        \
-        i--;                                                                   \
-      }                                                                        \
+  static TYPE *ListInsertAt_##TYPE(LIST_TYPE(TYPE) * ll, size_t index,         \
+                                   TYPE value) {                               \
+    if (index == 0) {                                                          \
+      ll->LPush(value);                                                        \
+      return;                                                                  \
     }                                                                          \
+    if (index >= ll->count) {                                                  \
+      ll->RPush(value);                                                        \
+      return;                                                                  \
+    }                                                                          \
+    NODE_TYPE(TYPE) *node = ListNodeAt_##TYPE(ll, index);                      \
+    NODE_TYPE(TYPE) *new_node =                                                \
+        (NODE_TYPE(TYPE) *)malloc(sizeof(NODE_TYPE(TYPE)));                    \
+    new_node->r = node;                                                        \
+    new_node->l = node->l;                                                     \
+    node->l = new_node;                                                        \
+    return &new_node->value;                                                   \
   }
 
 #define LL_REMOVE(TYPE)                                                        \
-  static void ListRemoveAt_##TYPE(LIST_TYPE(TYPE) * ll, size_t index) {}
+  static void ListRemoveAt_##TYPE(LIST_TYPE(TYPE) * ll, size_t index) {        \
+    if (index == 0) {                                                          \
+      TYPE tmp = ll->LPop();                                                   \
+      myFree(&tmp, ll->_customFree);                                           \
+      return;                                                                  \
+    }                                                                          \
+    if (index == ll->count - 1) {                                              \
+      TYPE tmp = ll->RPop();                                                   \
+      myFree(&tmp, ll->_customFree);                                           \
+      return;                                                                  \
+    }                                                                          \
+    if (index >= ll->count) {                                                  \
+      return;                                                                  \
+    }                                                                          \
+    NODE_TYPE(TYPE) *node = ListNodeAt_##TYPE(ll, index);                      \
+  }
 
 #define CREATE_LIST(TYPE, CUSTOM_FREE_FUNC)                                    \
   static LIST_TYPE(TYPE) CreateList_##TYPE() {                                 \
@@ -188,13 +212,14 @@
   }
 
 #define DefineLinkedList(TYPE, CUSTOM_FREE_FUNC)                               \
-  LL_FUNCTION(TYPE)                                                            \
+  LL_PROTOTYPE(TYPE)                                                           \
   NODE(TYPE)                                                                   \
   LIST(TYPE)                                                                   \
   LL_LPUSH(TYPE)                                                               \
   LL_RPUSH(TYPE)                                                               \
   LL_RPOP(TYPE)                                                                \
   LL_LPOP(TYPE)                                                                \
+  LL_NODE_AT(TYPE)                                                             \
   LL_AT(TYPE)                                                                  \
   LL_DESTROY(TYPE)                                                             \
   CREATE_LIST(TYPE, CUSTOM_FREE_FUNC)
