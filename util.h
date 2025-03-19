@@ -12,13 +12,13 @@ typedef void (*free_func)(void *);
  * value
  */
 static inline void myFree(void *ptr, free_func custom_free) {
-    if (custom_free == NULL) {
-        fprintf(stderr,
-                "custom_free need to be defined, if not, then you shouldn't "
-                "call myFree()\n");
-        exit(EXIT_FAILURE);
-    }
-    custom_free(*(void **)ptr);
+  if (custom_free == NULL) {
+    fprintf(stderr,
+            "custom_free need to be defined, if not, then you shouldn't "
+            "call myFree()\n");
+    exit(EXIT_FAILURE);
+  }
+  custom_free(*(void **)ptr);
 }
 
 #endif // MUHHAE_UTIL_H
