@@ -20,7 +20,7 @@ jobs:
       - name: Run clang-format
         run: |
           find . -name '*.c' -o -name '*.cpp' -o -name '*.h' -o -name '*.hpp' | xargs clang-format -i
-          git diff --exit-code
+
       - name: Auto-fix formatting issues
         run: |
           git config --global user.name "github-actions[bot]"
